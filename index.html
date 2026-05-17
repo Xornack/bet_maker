@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Bet Maker</title>
+    <!-- Trunk will automatically inject the compiled wasm here -->
+    <link data-trunk rel="rust" data-wasm-opt="2" />
+    <style>
+        /* Make the canvas fill the entire screen */
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+            background-color: #2b2b2b;
+        }
+        canvas {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <!-- The id must match the id used in src/main.rs -->
+    <canvas id="the_canvas_id"></canvas>
+</body>
+</html>

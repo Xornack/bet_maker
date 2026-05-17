@@ -1,0 +1,8 @@
+/target
+/dist
+
+# Local-only build redirects to escape OneDrive's Files On-Demand
+# (Windows machine has cargo target-dir and trunk dist pointed outside OneDrive;
+# CI builds normally inside the workspace, so these files should not be tracked.)
+/.cargo/
+/Trunk.toml
