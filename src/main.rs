@@ -62,6 +62,14 @@ impl Default for BetMakerApp {
 
 impl eframe::App for BetMakerApp {
     fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
+        // Scale UI so it fills the available width on phones while staying
+        // reasonable on desktop. Target a ~360 logical-pixel "design width".
+        let avail_width = ui.ctx().content_rect().width();
+        let zoom = (avail_width / 360.0).clamp(1.0, 2.5);
+        if (ui.ctx().zoom_factor() - zoom).abs() > 0.01 {
+            ui.ctx().set_zoom_factor(zoom);
+        }
+
         ui.heading("Bet Maker");
         ui.separator();
 
