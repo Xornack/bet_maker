@@ -44,6 +44,16 @@ fn main() {
     });
 }
 
+// Formats one side of a statistical odds ratio, omitting decimals when the
+// value is a whole number (e.g. 3.0 -> "3", 3.33 -> "3.33").
+fn format_ratio_side(value: f64) -> String {
+    if (value - value.round()).abs() < 1e-6 {
+        format!("{}", value.round() as i64)
+    } else {
+        format!("{:.2}", value)
+    }
+}
+
 struct BetMakerApp {
     prob_input: String,
     bet_amount_input: String,
@@ -77,6 +87,26 @@ impl eframe::App for BetMakerApp {
         ui.separator();
 
         ui.collapsing("Probability to Odds & Payout", |ui| {
+            ui.collapsing("What do these mean?", |ui| {
+                ui.label("Enter how likely you think an outcome is (as a %) and a bet \
+                    amount, and this converts that probability into odds and a payout.");
+                ui.add_space(6.0);
+                ui.label("• Decimal Odds: total return per $1 staked, i.e. 1 / probability. \
+                    A decimal odds of 2.00 means a $1 bet returns $2 total if it wins.");
+                ui.add_space(4.0);
+                ui.label("• Statistical Odds: the classic \"X:Y\" odds ratio, \
+                    probability : (1 - probability). A 25% chance is 1:3 (for every 1 way \
+                    it happens, there are 3 ways it doesn't).");
+                ui.add_space(4.0);
+                ui.label("• Potential Payout / Net Profit: what you'd walk away with (and \
+                    how much profit that is) if your bet amount wins at these fair odds.");
+                ui.add_space(4.0);
+                ui.label("• Opponent must pay: in a heads-up bet against another person, \
+                    this is the amount they'd owe you if you win, so the bet is fair for \
+                    both sides given the stated probability.");
+            });
+            ui.add_space(4.0);
+
             ui.horizontal(|ui| {
                 ui.label("Probability (%):");
                 ui.text_edit_singleline(&mut self.prob_input);
@@ -95,7 +125,20 @@ impl eframe::App for BetMakerApp {
                 let total_payout = bet * decimal_odds;
                 let net_profit = total_payout - bet;
 
+                // Statistical odds using the odds = prob : (1 - prob) convention
+                // (e.g. 50% -> 1:1, 25% -> 1:3), normalized so the smaller side is 1.
+                let (stat_left, stat_right) = if prob <= 0.5 {
+                    (1.0, (1.0 - prob) / prob)
+                } else {
+                    (prob / (1.0 - prob), 1.0)
+                };
+
                 ui.label(format!("Decimal Odds: {:.2}", decimal_odds));
+                ui.label(format!(
+                    "Statistical Odds: {}:{}",
+                    format_ratio_side(stat_left),
+                    format_ratio_side(stat_right)
+                ));
                 ui.label(format!("Potential Payout: ${:.2}", total_payout));
                 ui.label(format!("Net Profit: ${:.2}", net_profit));
                 ui.label(format!("Opponent must pay: ${:.2}", net_profit));
@@ -107,6 +150,16 @@ impl eframe::App for BetMakerApp {
         ui.add_space(20.0);
 
         ui.collapsing("Odds to Implied Probability", |ui| {
+            ui.collapsing("What do these mean?", |ui| {
+                ui.label("This is the reverse conversion: enter decimal odds (like you'd \
+                    see quoted by a bookmaker) to find out what probability of winning \
+                    those odds imply.");
+                ui.add_space(6.0);
+                ui.label("• Implied Probability: 1 / decimal odds, shown as a percentage. \
+                    For example, decimal odds of 4.00 imply a 25% chance of winning.");
+            });
+            ui.add_space(4.0);
+
             ui.horizontal(|ui| {
                 ui.label("Decimal Odds:");
                 ui.text_edit_singleline(&mut self.decimal_odds_input);
